@@ -4,6 +4,8 @@ import { UpdateBookDto } from './dto/update-book.dto';
 import { PrismaService } from '../prisma.service';
 import { Books } from './entities/book.entity';
 import { GetBookDto } from './dto/get-book.dto';
+import { Rsort } from 'src/func/sort';
+import { Lsearch } from 'src/func/search';
 interface PaginatedBooks {
   rows: Books[];
   page: number;
@@ -33,41 +35,8 @@ export class BooksService {
   async findAll(getBookDto: GetBookDto): Promise<PaginatedBooks> {
     const { page, pageSize, search, sort } = getBookDto;
 
-    let where = {};
-    if (search) {
-      where = {
-        OR: [
-          { title: { contains: search, mode: 'insensitive' } },
-          { author: { contains: search, mode: 'insensitive' } },
-        ],
-      };
-    }
-
-    let orderBy = {};
-    if (sort) {
-      switch (sort) {
-        case 'title_ASC':
-          orderBy = { title: 'asc' };
-          break;
-        case 'title_DESC':
-          orderBy = { title: 'desc' };
-          break;
-        case 'author_ASC':
-          orderBy = { author: 'asc' };
-          break;
-        case 'author_DESC':
-          orderBy = { author: 'desc' };
-          break;
-        case 'createdAt_ASC':
-          orderBy = { createdAt: 'asc' };
-          break;
-        case 'createdAt_DESC':
-          orderBy = { createdAt: 'desc' };
-          break;
-        default:
-          break;
-      }
-    }
+    const orderBy = Rsort(sort);
+    const where = Lsearch(search);
 
     const totalBooks = await this.prisma.books.count({ where });
     const totalPages = await Math.ceil(totalBooks / pageSize);
