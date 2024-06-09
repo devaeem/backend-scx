@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateBookDto } from './dto/create-book.dto';
 import { UpdateBookDto } from './dto/update-book.dto';
 import { PrismaService } from '../prisma.service';
@@ -6,6 +6,8 @@ import { Books } from './entities/book.entity';
 import { GetBookDto } from './dto/get-book.dto';
 import { Rsort } from 'src/func/sort';
 import { Lsearch } from 'src/func/search';
+import { GetBookIdDto } from './dto/getbook.dto';
+import { GetId } from 'src/func/interface/base.interface';
 interface PaginatedBooks {
   rows: Books[];
   page: number;
@@ -58,11 +60,17 @@ export class BooksService {
     };
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} book`;
+  async findOne(data: GetId): Promise<any> {
+    const book = await this.prisma.books.findUnique({ where: { id: data.id } });
+
+    if (!book) {
+      throw new NotFoundException('Book not found');
+    }
+
+    return book;
   }
 
-  update(id: number, updateBookDto: UpdateBookDto) {
+  update(id: string, updateBookDto: UpdateBookDto) {
     return `This action updates a #${id} book`;
   }
 

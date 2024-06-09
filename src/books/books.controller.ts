@@ -16,6 +16,7 @@ import { BooksService } from './books.service';
 import { CreateBookDto } from './dto/create-book.dto';
 import { UpdateBookDto } from './dto/update-book.dto';
 import { GetBookDto } from './dto/get-book.dto';
+import { GetBookIdDto } from './dto/getbook.dto';
 
 @Controller('books')
 export class BooksController {
@@ -62,13 +63,33 @@ export class BooksController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.booksService.findOne(+id);
+  async findOne(@Param('id') id: string, @Res() response: Response) {
+    try {
+      const getBookIdDto: GetBookIdDto = { id };
+      const books = await this.booksService.findOne(getBookIdDto);
+      return response.status(HttpStatus.OK).json({
+        httpStatus: HttpStatus.OK,
+        message: 'Book successfully',
+        data: books,
+      });
+    } catch (error) {
+      throw new HttpException(
+        'Failed to get book',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateBookDto: UpdateBookDto) {
-    return this.booksService.update(+id, updateBookDto);
+    try {
+      return this.booksService.update(id, updateBookDto);
+    } catch (error) {
+      throw new HttpException(
+        'Failed to update book',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 
   @Delete(':id')
